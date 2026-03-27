@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0A12">
+<meta name="description" content="Phase — Your circadian intelligence OS.">
+<title>Phase — Circadian Intelligence OS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%237F77DD'/><stop offset='50%25' stop-color='%235DCAA5'/><stop offset='100%25' stop-color='%23F5C4B3'/></linearGradient></defs><circle cx='50' cy='50' r='45' fill='none' stroke='url(%23g)' stroke-width='6' opacity='0.9'/><circle cx='50' cy='50' r='28' fill='none' stroke='url(%23g)' stroke-width='3' opacity='0.5'/><circle cx='50' cy='50' r='8' fill='url(%23g)'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{display:none}
+html,body{width:100%;height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;background:#08080E;overflow:hidden}
+:root{
+--bg:#0A0A12;--bg2:#12121E;--bg3:#1A1A2E;
+--pri:#7F77DD;--acc:#5DCAA5;--warm:#F5C4B3;--err:#FF6B6B;
+--glass:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.06);
+--t1:white;--t2:rgba(255,255,255,0.7);--t3:rgba(255,255,255,0.5);--t4:rgba(255,255,255,0.3);
+--r:16px;--rl:24px
+}
+
+/* ===== SPLASH ===== */
+.splash{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s ease,transform .6s ease}
+.splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash-logo{width:48px;height:48px;margin-bottom:16px;animation:splashPulse 1.5s ease-in-out infinite}
+.splash-bar-wrap{width:60px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:20px}
+.splash-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;animation:splashLoad 2.2s ease-in-out forwards}
+.splash-name{font-family:'DM Serif Display',serif;font-size:24px;color:var(--t1);letter-spacing:1px;opacity:0;animation:splashFade .8s ease .3s forwards}
+@keyframes splashLoad{0%{width:0}60%{width:80%}100%{width:100%}}
+@keyframes splashPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes splashFade{to{opacity:1}}
+
+/* ===== ANIMATIONS ===== */
+@keyframes auroraGlow{0%{transform:translateY(-100%) rotateZ(0deg);opacity:.3}50%{opacity:.5}100%{transform:translateY(100%) rotateZ(180deg);opacity:.2}}
+@keyframes ringBreath{0%,100%{filter:drop-shadow(0 0 8px rgba(127,119,221,.3))}50%{filter:drop-shadow(0 0 18px rgba(127,119,221,.5))}}
+@keyframes floatUp{0%{transform:translateY(12px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes pulseSc{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+/* ===== PHONE FRAME ===== */
+.phone{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;max-width:430px;height:100vh;height:100dvh;background:rgba(10,10,18,.85);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.08);color:var(--t1);overflow:hidden;display:flex;flex-direction:column;border-radius:40px;box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06);transition:all .3s}
+.aurora-bg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.aurora-bg>div{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,rgba(127,119,221,.12) 0%,rgba(93,202,165,.06) 30%,transparent 70%);animation:auroraGlow 20s ease-in-out infinite}
+.phone-inner{position:relative;flex:1;display:flex;flex-direction:column;z-index:1;overflow:hidden}
+
+/* ===== SCREENS ===== */
+.scr{display:none;flex-direction:column;height:100%;width:100%;overflow:hidden}
+.scr.active{display:flex}
+.scr-body{flex:1;overflow-y:auto;padding:0 16px 100px;display:flex;flex-direction:column;gap:20px;scroll-behavior:smooth}
+
+/* ===== DASHBOARD HEADER ===== */
+.dash-head{padding:20px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dash-greet{display:flex;flex-direction:column;gap:2px}
+.dash-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--acc);font-weight:600}
+.dash-name{font-family:'DM Serif Display',serif;font-size:26px;color:var(--t1);font-weight:400}
+.dash-actions{display:flex;gap:8px}
+.ico-btn{width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);transition:all .25s}
+.ico-btn:hover{background:rgba(255,255,255,.08)}
+.ico-btn svg{width:20px;height:20px}
+
+/* ===== SUB SCREEN HEADER ===== */
+.sub-head{padding:16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.back-btn{width:36px;height:36px;border-radius:50%;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);transition:all .25s}
+.back-btn:hover{background:rgba(255,255,255,.08)}
+.back-btn svg{width:18px;height:18px}
+.sub-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1)}
+
+/* ===== CARDS ===== */
+.card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:16px;animation:floatUp .4s ease-out;transition:all .25s;backdrop-filter:blur(16px)}
+.card:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09)}
+.card-head{margin-bottom:12px;display:flex;align-items:baseline;justify-content:space-between}
+.card-head h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.85);margin:0}
+.card-sub{font-size:11px;color:var(--t3)}
+.card-lg{padding:28px}
+.card-ctr{display:flex;flex-direction:column;align-items:center;gap:20px}
+.card-hl{background:linear-gradient(135deg,rgba(127,119,221,.1),rgba(93,202,165,.07));border-color:rgba(127,119,221,.18)}
+
+/* ===== OVERVIEW CARDS ===== */
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ov-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .25s;backdrop-filter:blur(16px);animation:floatUp .4s ease-out}
+.ov-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);transform:translateY(-2px)}
+.ov-card:active{transform:scale(.97)}
+.ov-icon{font-size:24px;margin-bottom:10px}
+.ov-val{font-family:'DM Serif Display',serif;font-size:28px;color:var(--t1);margin-bottom:2px}
+.ov-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.ov-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.ov-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+
+/* ===== SCORE RING ===== */
+.ring-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.ring-wrap svg{animation:ringBreath 3s ease-in-out infinite}
+.ring-inner{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ring-val{font-family:'DM Serif Display',serif;font-size:46px;color:var(--t1)}
+.ring-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+
+/* ===== METRICS ===== */
+.met-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.met{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;transition:all .25s}
+.met:hover{background:rgba(255,255,255,.06)}
+.met-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.met-val{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);margin-bottom:2px}
+.met-sub{font-size:10px;color:var(--t3)}
+
+/* ===== INSIGHT PILL ===== */
+.pill{background:linear-gradient(135deg,rgba(245,196,179,.08),rgba(127,119,221,.08));border:1px solid rgba(245,196,179,.15);border-radius:var(--rl);padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;animation:pulseSc 3s ease-in-out infinite;transition:all .25s}
+.pill:hover{background:linear-gradient(135deg,rgba(245,196,179,.12),rgba(127,119,221,.12))}
+.pill-ico{font-size:22px;flex-shrink:0}
+.pill-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.pill-txt{font-size:11px;color:var(--t2);line-height:1.4}
+
+/* ===== STACKED BAR ===== */
+.sbar{display:flex;height:28px;border-radius:10px;overflow:hidden;gap:1px;background:rgba(255,255,255,.02);padding:2px;margin-bottom:14px}
+.sbar-seg{display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sleg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sleg-i{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
+.sleg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.sleg-v{margin-left:auto;color:var(--t3);font-size:11px}
+
+/* ===== WEEKLY BARS ===== */
+.wbars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wbar-i{display:flex;flex-direction:column;gap:4px;align-items:center}
+.wbar-bg{width:100%;height:72px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden;display:flex;align-items:flex-end}
+.wbar-fill{width:100%;border-radius:10px 10px 0 0;transition:height .4s ease}
+.wbar-lbl{font-size:10px;color:var(--t3);font-weight:500}
+
+/* ===== FOCUS ===== */
+.fblock{display:flex;flex-direction:column;gap:6px}
+.fblock-h{display:flex;justify-content:space-between;align-items:center}
+.ftime{font-size:12px;font-weight:600;color:var(--t1);font-family:'DM Mono',monospace}
+.fscore{font-size:12px;color:var(--pri);font-weight:600}
+.fbar{height:10px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden}
+.fbar-fill{height:100%;border-radius:8px;transition:width .4s cubic-bezier(.34,1.56,.64,1)}
+
+/* ===== COUNTDOWN ===== */
+.cd-wrap{text-align:center;display:flex;flex-direction:column;gap:14px}
+.cd-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.cd-big{font-family:'DM Serif Display',serif;font-size:44px;color:var(--t1)}
+.cd-sub{font-size:12px;color:var(--t3)}
+
+/* ===== TASK ===== */
+.task-i{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:12px}
+.task-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.task-t{font-size:12px;font-weight:600;color:var(--t1);font-family:'DM Mono',monospace}
+.task-f{font-size:10px;color:var(--acc)}
+.task-in{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;color:white;font-size:13px;font-family:'DM Sans',sans-serif;width:100%;transition:all .25s}
+.task-in::placeholder{color:var(--t4)}
+.task-in:focus{outline:none;background:rgba(255,255,255,.06);border-color:var(--pri);box-shadow:0 0 0 2px rgba(127,119,221,.15)}
+
+/* ===== RECOVERY ===== */
+.ready-box{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.ready-ico{font-size:42px}
+.ready-st{font-family:'DM Serif Display',serif;font-size:26px;color:var(--t1)}
+.ready-rec{font-size:12px;color:var(--t2)}
+.ready-bar{width:36px;height:3px;border-radius:2px}
+.bd-items{display:flex;flex-direction:column;gap:14px}
+.bd-i{display:flex;flex-direction:column;gap:6px}
+.bd-lbl{font-size:11px;color:var(--t2);font-weight:500}
+.bd-bar{height:14px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden}
+.bd-fill{height:100%;background:var(--acc);border-radius:8px;transition:width .4s ease}
+.bd-val{font-size:10px;color:var(--t3);font-family:'DM Mono',monospace}
+.rec-box{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:14px}
+.rec-emoji{font-size:28px;flex-shrink:0}
+.rec-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px}
+.rec-desc{font-size:11px;color:var(--t2);line-height:1.5}
+
+/* ===== HEATMAP ===== */
+.hm-grid{display:flex;flex-direction:column;gap:2px}
+.hm-row{display:grid;grid-template-columns:36px 1fr;gap:6px;align-items:center}
+.hm-day{font-size:11px;color:var(--t2);font-weight:500;text-align:right}
+.hm-cells{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
+.hm-cell{aspect-ratio:1;min-height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.06);transition:all .25s;cursor:pointer}
+.hm-cell:hover{transform:scale(1.15);border-color:rgba(255,255,255,.25)}
+.hm-legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.04)}
+.hm-legend .sleg-i{font-size:10px}
+.chrono-box{display:flex;gap:16px;align-items:center;cursor:pointer}
+.chrono-ico{font-size:36px}
+.chrono-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.chrono-type{font-family:'DM Serif Display',serif;font-size:20px;color:var(--t1);margin-bottom:2px}
+.chrono-desc{font-size:11px;color:var(--t3)}
+.ins-list{display:flex;flex-direction:column;gap:14px}
+.ins-i{display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:8px;border-radius:10px;transition:background .2s}
+.ins-i:hover{background:rgba(255,255,255,.04)}
+.ins-ico{font-size:18px;flex-shrink:0}
+.ins-t{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.ins-v{font-family:'DM Serif Display',serif;font-size:16px;color:var(--t1)}
+
+/* ===== COMPARISON ===== */
+.cmp-bars{display:flex;flex-direction:column;gap:14px}
+.cmp-i{display:flex;flex-direction:column;gap:5px}
+.cmp-lbl{font-size:11px;color:var(--t2);font-weight:500}
+.cmp-bar{height:16px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden}
+.cmp-fill{height:100%;border-radius:8px;transition:width .4s cubic-bezier(.34,1.56,.64,1)}
+.cmp-val{font-size:11px;color:var(--t2)}
+
+/* ===== BUTTONS ===== */
+.btn{padding:10px 20px;border:none;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.btn-p{background:var(--pri);color:white}
+.btn-p:hover{background:#8f87ed;box-shadow:0 0 16px rgba(127,119,221,.35)}
+.btn:active{transform:scale(.97)}
+
+/* ===== BOTTOM NAV ===== */
+.bnav{position:absolute;bottom:0;left:0;width:100%;height:68px;background:rgba(10,10,18,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:100;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+.nb{background:none;border:none;color:var(--t4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:52px;height:52px;border-radius:12px;transition:all .25s}
+.nb:hover{color:var(--t3)}
+.nb.on{color:var(--pri);background:rgba(127,119,221,.1);box-shadow:0 0 12px rgba(127,119,221,.15)}
+.nb svg{width:20px;height:20px}
+.nb-l{font-size:9px;font-weight:600;letter-spacing:.3px}
+
+/* ===== PROFILE SLIDER ===== */
+.prof-ov{position:absolute;top:0;left:0;width:100%;height:100%;z-index:200;pointer-events:none;opacity:0;transition:opacity .3s}
+.prof-ov.open{pointer-events:all;opacity:1}
+.prof-bk{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+.prof-pan{position:absolute;top:0;right:0;width:85%;max-width:340px;height:100%;background:var(--bg);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:24px 16px}
+.prof-ov.open .prof-pan{transform:translateX(0)}
+.prof-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.prof-t{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1)}
+.prof-close{background:none;border:none;color:var(--t3);cursor:pointer;padding:6px;border-radius:50%;transition:all .25s;display:flex}
+.prof-close:hover{background:rgba(255,255,255,.08);color:var(--t1)}
+.prof-close svg{width:22px;height:22px}
+.u-head{display:flex;gap:14px;align-items:center;margin-bottom:20px}
+.u-av{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.u-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--t1)}
+.set-list{display:flex;flex-direction:column;gap:14px}
+.set-i{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.set-i:last-child{border-bottom:none}
+.set-n{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px}
+.set-d{font-size:10px;color:var(--t3)}
+.tog{position:relative;width:42px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog label{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.1);border-radius:11px;transition:all .25s}
+.tog label::after{content:'';position:absolute;left:2px;top:2px;width:18px;height:18px;background:white;border-radius:9px;transition:all .25s}
+.tog input:checked+label{background:var(--pri)}
+.tog input:checked+label::after{left:22px}
+.dev-i{display:flex;gap:12px;align-items:center;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid rgba(255,255,255,.04)}
+.dev-ico{font-size:22px}
+.dev-n{font-size:12px;font-weight:500;color:var(--t1);margin-bottom:1px}
+.dev-s{font-size:10px;color:var(--t3)}
+.src-i{display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,255,255,.02);border-radius:10px;border:1px solid rgba(255,255,255,.04)}
+.src-n{font-size:12px;font-weight:500;color:var(--t1)}
+.src-s{font-size:10px;color:var(--acc)}
+
+/* ===== TODAY'S PLAN ===== */
+.plan-list{display:flex;flex-direction:column;gap:2px}
+.plan-i{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:12px;cursor:pointer;transition:all .2s}
+.plan-i:hover{background:rgba(255,255,255,.04)}
+.plan-i:active{transform:scale(.98)}
+.plan-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);min-width:40px}
+.plan-body{flex:1;min-width:0}
+.plan-title{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px}
+.plan-desc{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-tag{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:6px;white-space:nowrap}
+
+/* ===== POPUP ===== */
+.pop-ov{position:absolute;top:0;left:0;width:100%;height:100%;z-index:300;pointer-events:none;opacity:0;transition:opacity .3s;display:flex;align-items:flex-end}
+.pop-ov.open{pointer-events:all;opacity:1}
+.pop-bk{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+.pop-c{position:relative;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 20px 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:1}
+.pop-ov.open .pop-c{transform:translateY(0)}
+.pop-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--acc));display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.pop-icon svg{width:26px;height:26px;color:white}
+.pop-t{font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);margin-bottom:6px}
+.pop-d{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:20px}
+.pop-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--pri);color:white;transition:all .25s}
+.pop-btn:hover{background:#8f87ed}
+.pop-btn:active{transform:scale(.98)}
+
+/* ===== LIGHT MODE ===== */
+.phone.light{--bg:#F8F7F4;--bg2:#F0EFEC;--bg3:#E4E3E0;--glass:rgba(0,0,0,.03);--border:rgba(0,0,0,.07);--t1:#1a1a2e;--t2:#555;--t3:#888;--t4:rgba(0,0,0,.25);background:rgba(248,247,244,.88);border-color:rgba(0,0,0,.08);color:var(--t1);box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.5)}
+.phone.light .aurora-bg{display:none}
+.phone.light .card,.phone.light .ov-card{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.06);box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.phone.light .bnav{background:rgba(248,247,244,.95);border-top-color:rgba(0,0,0,.06)}
+.phone.light .nb{color:rgba(0,0,0,.3)}
+.phone.light .nb.on{color:var(--pri);background:rgba(127,119,221,.08)}
+.phone.light .prof-pan{background:var(--bg)}
+.phone.light .pop-c{background:var(--bg2)}
+.phone.light .met{background:#FFFFFF;border-color:rgba(0,0,0,.08);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.phone.light .task-in{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08);color:var(--t1)}
+.phone.light .task-in::placeholder{color:#aaa}
+.phone.light .pill{background:linear-gradient(135deg,rgba(245,196,179,.06),rgba(127,119,221,.05));border:1px solid rgba(0,0,0,.15)}
+.phone.light .bd-bar,.phone.light .fbar,.phone.light .ov-bar,.phone.light .wbar-bg,.phone.light .cmp-bar{background:rgba(0,0,0,.06)}
+.phone.light .hm-cell{border-color:rgba(0,0,0,.06)}
+.phone.light text{fill:rgba(0,0,0,.4)!important}
+.phone.light .dash-label{color:var(--pri)}
+.phone.light .splash{background:var(--bg)}
+</style>
+</head>
+<body>
+
+<!-- PHONE -->
+<div class="phone" id="phone">
+  <!-- SPLASH -->
+  <div class="splash" id="splash">
+    <svg class="splash-logo" viewBox="0 0 100 100" fill="none">
+      <defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7F77DD"/><stop offset="50%" stop-color="#5DCAA5"/><stop offset="100%" stop-color="#F5C4B3"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="40" stroke="url(#sg)" stroke-width="5" opacity=".8"/>
+      <circle cx="50" cy="50" r="22" stroke="url(#sg)" stroke-width="2.5" opacity=".4"/>
+      <circle cx="50" cy="50" r="7" fill="url(#sg)"/>
+    </svg>
+    <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+    <div class="splash-name">Phase</div>
+  </div>
+  <div class="aurora-bg"><div></div></div>
+  <div class="phone-inner">
+
+    <!-- DASHBOARD -->
+    <div class="scr active" id="scr-dash">
+      <div class="dash-head">
+        <div class="dash-greet"><div class="dash-label" id="greetLabel">GOOD MORNING</div><div class="dash-name">Om's Phase</div></div>
+        <div class="dash-actions">
+          <button class="ico-btn" id="themeBtn" onclick="togTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+          <button class="ico-btn" onclick="togProf()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8"/></svg></button>
+        </div>
+      </div>
+      <div class="scr-body" id="dashBody"></div>
+    </div>
+
+    <!-- SLEEP -->
+    <div class="scr" id="scr-sleep">
+      <div class="sub-head"><button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div class="sub-title">Sleep Architecture</div></div>
+      <div class="scr-body" id="sleepBody"></div>
+    </div>
+
+    <!-- FOCUS -->
+    <div class="scr" id="scr-focus">
+      <div class="sub-head"><button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div class="sub-title">Focus Windows</div></div>
+      <div class="scr-body" id="focusBody"></div>
+    </div>
+
+    <!-- RECOVERY -->
+    <div class="scr" id="scr-recovery">
+      <div class="sub-head"><button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div class="sub-title">Recovery</div></div>
+      <div class="scr-body" id="recoveryBody"></div>
+    </div>
+
+    <!-- RHYTHM -->
+    <div class="scr" id="scr-rhythm">
+      <div class="sub-head"><button class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div class="sub-title">Weekly Rhythm</div></div>
+      <div class="scr-body" id="rhythmBody"></div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="bnav">
+      <button class="nb on" data-t="dash" onclick="nav('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-linejoin="round"/></svg><span class="nb-l">HOME</span></button>
+      <button class="nb" data-t="sleep" onclick="nav('sleep')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><span class="nb-l">SLEEP</span></button>
+      <button class="nb" data-t="focus" onclick="nav('focus')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/></svg><span class="nb-l">FOCUS</span></button>
+      <button class="nb" data-t="recovery" onclick="nav('recovery')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2L15.09 8.26H21.77L16.84 12.45L18.93 18.71L12 14.52L5.07 18.71L7.16 12.45L2.23 8.26H8.91L12 2Z"/></svg><span class="nb-l">RECOVER</span></button>
+      <button class="nb" data-t="rhythm" onclick="nav('rhythm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="3" height="3" rx=".5" fill="currentColor"/><rect x="10.5" y="3" width="3" height="3" rx=".5" fill="currentColor"/><rect x="18" y="3" width="3" height="3" rx=".5" fill="currentColor"/><rect x="3" y="10.5" width="3" height="3" rx=".5" fill="currentColor"/><rect x="10.5" y="10.5" width="3" height="3" rx=".5" fill="currentColor"/><rect x="18" y="10.5" width="3" height="3" rx=".5" fill="currentColor"/><rect x="3" y="18" width="3" height="3" rx=".5" fill="currentColor"/><rect x="10.5" y="18" width="3" height="3" rx=".5" fill="currentColor"/><rect x="18" y="18" width="3" height="3" rx=".5" fill="currentColor"/></svg><span class="nb-l">RHYTHM</span></button>
+    </nav>
+  </div>
+  <!-- PROFILE -->
+  <div class="prof-ov" id="profOv"><div class="prof-bk" onclick="togProf()"></div><div class="prof-pan" id="profPan"></div></div>
+  <!-- POPUP -->
+  <div class="pop-ov" id="popOv"><div class="pop-bk" onclick="closePop()"></div><div class="pop-c" id="popC"></div></div>
+</div>
+
+<script>
+let light=false,cur='dash',cdSec=180;
+const tasks=['','',''];
+const D={circadian:82,hrv:58,rhr:62,sleepScore:88,recovery:79,sleepDebt:-0.5,stages:{wake:.6,rem:1.88,light:3.53,deep:1.5},focus:[{s:'09:00',e:'11:30',p:91},{s:'14:00',e:'16:00',p:78},{s:'20:00',e:'21:30',p:68}],energy:[[42,55,78,88,91,85,72,60,48,45,52,65],[38,50,72,82,87,80,68,55,44,40,48,58],[45,60,82,92,95,88,76,64,52,48,56,70],[40,52,75,86,89,82,70,58,46,42,50,62],[36,48,68,78,82,76,64,52,42,38,44,55],[50,62,80,86,84,78,72,68,64,60,58,62],[52,65,82,88,86,80,74,70,66,62,60,64]],weeklySleep:[7.2,6.8,8.1,7.4,6.5,7.9,8.3],weeklyRec:[72,78,85,74,68,82,79],steps:8247,cals:2180,streak:14,bodyTemp:36.6,spo2:98,strain:38};
+
+function greet(){const h=new Date().getHours();return h<12?'GOOD MORNING':h<18?'GOOD AFTERNOON':'GOOD EVENING'}
+function fmtT(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function ring(sc,lbl,col,sz=200){const r=sz/2-14,c=2*Math.PI*r,off=c-(sc/100)*c;return`<div class="ring-wrap"><svg width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="7"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${col}" stroke-width="7" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" style="transition:stroke-dashoffset .6s;transform:rotate(-90deg);transform-origin:center"/></svg><div class="ring-inner"><div class="ring-val">${Math.round(sc)}</div><div class="ring-lbl">${lbl}</div></div></div>`}
+function hmCol(v){if(v>75)return'#7F77DD';if(v>50)return'#5DCAA5';if(v>25)return'#F5C4B3';return'rgba(255,255,255,0.08)'}
+
+function renderDash(){
+  document.getElementById('greetLabel').textContent=greet();
+  const ePts=Array(24).fill(0).map((_,i)=>{const e=50+30*Math.sin((i-10)*(Math.PI/12));return{x:20+(i/23)*276,y:90-(e/100)*70}});
+  let eP=`M ${ePts[0].x} ${ePts[0].y}`;ePts.forEach(p=>eP+=` L ${p.x} ${p.y}`);
+  const hrs=['00','03','06','09','12','15','18','21','24'];
+  const ch=new Date().getHours();
+  document.getElementById('dashBody').innerHTML=`
+    <div class="card card-lg card-ctr">${ring(D.circadian,'Circadian Score','#7F77DD',200)}<div style="font-size:13px;color:var(--t2);font-family:'DM Mono',monospace">${String(ch).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}</div></div>
+    <div class="ov-grid">
+      <div class="ov-card" onclick="nav('sleep')"><div class="ov-icon">&#x1F319;</div><div class="ov-val">${D.sleepScore}</div><div class="ov-lbl">Sleep Score</div><div class="ov-bar"><div class="ov-bar-fill" style="width:${D.sleepScore}%;background:var(--acc)"></div></div></div>
+      <div class="ov-card" onclick="nav('recovery')"><div class="ov-icon">&#x2728;</div><div class="ov-val">${D.recovery}%</div><div class="ov-lbl">Recovery</div><div class="ov-bar"><div class="ov-bar-fill" style="width:${D.recovery}%;background:var(--pri)"></div></div></div>
+      <div class="ov-card" onclick="nav('focus')"><div class="ov-icon">&#x1F3AF;</div><div class="ov-val">${D.focus[0].p}%</div><div class="ov-lbl">Next Focus</div><div class="ov-bar"><div class="ov-bar-fill" style="width:${D.focus[0].p}%;background:var(--warm)"></div></div></div>
+      <div class="ov-card" onclick="nav('rhythm')"><div class="ov-icon">&#x1F43A;</div><div class="ov-val">Wolf</div><div class="ov-lbl">Chronotype</div><div class="ov-bar"><div class="ov-bar-fill" style="width:78%;background:var(--pri)"></div></div></div>
+    </div>
+    <div class="card"><div class="card-head"><h3>Energy Timeline</h3><div class="card-sub">24h</div></div>
+      <svg width="100%" height="110" viewBox="0 0 316 110">
+        <defs><linearGradient id="eg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#7F77DD" stop-opacity=".35"/><stop offset="100%" stop-color="#7F77DD" stop-opacity=".03"/></linearGradient></defs>
+        ${[0,1,2,3].map(i=>`<line x1="20" y1="${15+i*20}" x2="296" y2="${15+i*20}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`).join('')}
+        <path d="${eP} L 296 90 L 20 90 Z" fill="url(#eg)"/>
+        <path d="${eP}" fill="none" stroke="#7F77DD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="${20+(ch/23)*276}" cy="${90-((50+30*Math.sin((ch-10)*(Math.PI/12)))/100)*70}" r="4" fill="#7F77DD" stroke="white" stroke-width="1.5"/>
+        ${hrs.map((h,i)=>`<text x="${20+(i/8)*276}" y="105" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9" font-family="DM Mono">${h}</text>`).join('')}
+      </svg>
+    </div>
+    <div class="met-row">
+      <div class="met" onclick="pop('hrvTip')" style="cursor:pointer"><div class="met-lbl">HRV</div><div class="met-val">${D.hrv}ms</div><div class="met-sub">Stable</div></div>
+      <div class="met" onclick="pop('recoveryBreakdown')" style="cursor:pointer"><div class="met-lbl">Resting HR</div><div class="met-val">${D.rhr}</div><div class="met-sub">bpm</div></div>
+      <div class="met" onclick="pop('sleepTip')" style="cursor:pointer"><div class="met-lbl">Sleep Debt</div><div class="met-val">${D.sleepDebt>0?'+':''}${D.sleepDebt.toFixed(1)}h</div><div class="met-sub">Balanced</div></div>
+    </div>
+    <div class="met-row">
+      <div class="met"><div class="met-lbl">Steps</div><div class="met-val">${(D.steps/1000).toFixed(1)}k</div><div class="met-sub">Today</div></div>
+      <div class="met"><div class="met-lbl">Calories</div><div class="met-val">${D.cals}</div><div class="met-sub">Burned</div></div>
+      <div class="met"><div class="met-lbl">Streak</div><div class="met-val">${D.streak}d</div><div class="met-sub">&#x1F525;</div></div>
+    </div>
+    <div class="pill" onclick="pop('insight')"><div class="pill-ico">&#x1F4A1;</div><div><div class="pill-title">Peak Window Approaching</div><div class="pill-txt">Your cognitive performance peaks in 3 hours. Tap to learn more.</div></div></div>
+    <div class="pill" onclick="pop('hrvTip')"><div class="pill-ico">&#x2764;&#xFE0F;</div><div><div class="pill-title">HRV Trending Up</div><div class="pill-txt">+8% this week. Your nervous system is adapting well.</div></div></div>
+    <div class="pill" onclick="pop('streakInfo')"><div class="pill-ico">&#x1F525;</div><div><div class="pill-title">${D.streak}-Day Streak</div><div class="pill-txt">You've been consistent. Tap to see your milestones.</div></div></div>`}
+
+function renderSleep(){
+  const st=[{n:'Deep',v:D.stages.deep,c:'#5DCAA5',p:20},{n:'REM',v:D.stages.rem,c:'#7F77DD',p:25},{n:'Light',v:D.stages.light,c:'#F5C4B3',p:47},{n:'Wake',v:D.stages.wake,c:'rgba(255,255,255,0.2)',p:8}];
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('sleepBody').innerHTML=`
+    <div class="card card-lg card-ctr">${ring(D.sleepScore,'Sleep Score','#5DCAA5')}</div>
+    <div class="card"><div class="card-head"><h3>Sleep Stages</h3><div class="card-sub">7.5h total</div></div>
+      <div class="sbar">${st.map(s=>`<div class="sbar-seg" style="flex:${s.p};background:${s.c}">${s.p>12?s.p+'%':''}</div>`).join('')}</div>
+      <div class="sleg">${st.map(s=>`<div class="sleg-i"><div class="sleg-dot" style="background:${s.c}"></div><span>${s.n}</span><span class="sleg-v">${s.v.toFixed(1)}h</span></div>`).join('')}</div>
+    </div>
+    <div class="met-row">
+      <div class="met" onclick="pop('sleepTip')" style="cursor:pointer"><div class="met-lbl">Time in Bed</div><div class="met-val">7h42m</div><div class="met-sub">Healthy</div></div>
+      <div class="met" onclick="pop('sleepOnset')" style="cursor:pointer"><div class="met-lbl">Onset</div><div class="met-val">12m</div><div class="met-sub">Normal</div></div>
+      <div class="met" onclick="pop('sleepEfficiency')" style="cursor:pointer"><div class="met-lbl">Efficiency</div><div class="met-val">97%</div><div class="met-sub">Excellent</div></div>
+    </div>
+    <div class="card"><div class="card-head"><h3>Weekly Sleep</h3></div>
+      <div class="wbars">${days.map((d,i)=>{const h=D.weeklySleep[i],pct=(h/9)*100,col=h>7.5?'#5DCAA5':h>6.5?'#7F77DD':'#F5C4B3';return`<div class="wbar-i"><div class="wbar-bg"><div class="wbar-fill" style="height:${pct}%;background:${col}"></div></div><div class="wbar-lbl">${d}</div></div>`}).join('')}</div>
+    </div>
+    <div class="pill" onclick="pop('sleepTip')"><div class="pill-ico">&#x1F4A4;</div><div><div class="pill-title">Sleep Optimization</div><div class="pill-txt">Your deep sleep is above average. Tap for tips.</div></div></div>`}
+
+function renderFocus(){
+  const cols=['#7F77DD','#5DCAA5','#F5C4B3'];
+  document.getElementById('focusBody').innerHTML=`
+    <div class="card"><div class="card-head"><h3>Today's Focus Windows</h3></div>
+      <div style="display:flex;flex-direction:column;gap:14px">${D.focus.map((w,i)=>`<div class="fblock"><div class="fblock-h"><div class="ftime">${w.s} - ${w.e}</div><div class="fscore">${w.p}%</div></div><div class="fbar"><div class="fbar-fill" style="width:${w.p}%;background:${cols[i]}"></div></div></div>`).join('')}</div>
+    </div>
+    <div class="card card-hl"><div class="cd-wrap"><div class="cd-lbl">Next Peak Focus</div><div class="cd-big">09:00</div><div class="cd-sub">Schedule your most important task now</div><button class="btn btn-p" onclick="pop('calendar')">Add to Calendar</button></div></div>
+    <div class="card"><div class="card-head"><h3>Assign Tasks to Peaks</h3></div>
+      <div style="display:flex;flex-direction:column;gap:12px">${D.focus.map((w,i)=>`<div class="task-i"><div class="task-h"><span class="task-t">${w.s}</span><span class="task-f">${w.p}% focus</span></div><input type="text" class="task-in" placeholder="Add task..." value="${tasks[i].replace(/"/g,'&quot;')}" oninput="tasks[${i}]=this.value"></div>`).join('')}</div>
+    </div>
+    <div class="card" onclick="pop('focusQuality')" style="cursor:pointer"><div class="card-head"><h3>Focus Quality</h3><div class="card-sub">Tap for details</div></div>
+      <div class="cmp-bars">
+        <div class="cmp-i"><div class="cmp-lbl">Predicted</div><div class="cmp-bar"><div class="cmp-fill" style="width:85%;background:var(--pri)"></div></div><div class="cmp-val">85%</div></div>
+        <div class="cmp-i"><div class="cmp-lbl">Actual</div><div class="cmp-bar"><div class="cmp-fill" style="width:79%;background:var(--acc)"></div></div><div class="cmp-val">79%</div></div>
+      </div>
+    </div>`}
+
+function renderRecovery(){
+  const s=D.recovery;let st;
+  if(s>=80)st={s:'Optimal',i:'&#x2728;',r:'Push Hard',c:'#5DCAA5',d:'You can handle intense workouts and challenging tasks.'};
+  else if(s>=60)st={s:'Good',i:'&#x1F44D;',r:'Moderate Work',c:'#7F77DD',d:'Mix steady work with adequate breaks.'};
+  else if(s>=40)st={s:'Moderate',i:'&#x26A0;&#xFE0F;',r:'Light Activity',c:'#F5C4B3',d:'Focus on light activities and restorative practices.'};
+  else st={s:'Low',i:'&#x1F6CC;',r:'Rest Day',c:'#FF6B6B',d:'Take it easy today.'};
+  const tY=[65,55,40,60,35,50,45],tP=tY.map((v,i)=>`${30+(i/6)*256},${v}`).join(' '),dayL=['M','T','W','T','F','S','S'];
+  document.getElementById('recoveryBody').innerHTML=`
+    <div class="card card-lg card-ctr">${ring(D.recovery,'Recovery','#5DCAA5')}</div>
+    <div class="card card-hl" onclick="pop('readiness')" style="cursor:pointer"><div class="ready-box"><div class="ready-ico">${st.i}</div><div class="ready-st">${st.s}</div><div class="ready-rec">${st.r}</div><div class="ready-bar" style="background:${st.c}"></div></div></div>
+    <div class="card" onclick="pop('recoveryBreakdown')" style="cursor:pointer"><div class="card-head"><h3>Recovery Breakdown</h3><div class="card-sub">Tap for details</div></div>
+      <div class="bd-items">
+        <div class="bd-i"><div class="bd-lbl">HRV Status</div><div class="bd-bar"><div class="bd-fill" style="width:${D.hrv}%"></div></div><div class="bd-val">${D.hrv}ms</div></div>
+        <div class="bd-i"><div class="bd-lbl">Resting HR</div><div class="bd-bar"><div class="bd-fill" style="width:${100-D.rhr+40}%"></div></div><div class="bd-val">${D.rhr} bpm</div></div>
+        <div class="bd-i"><div class="bd-lbl">Sleep Quality</div><div class="bd-bar"><div class="bd-fill" style="width:${D.sleepScore}%"></div></div><div class="bd-val">${D.sleepScore}%</div></div>
+        <div class="bd-i"><div class="bd-lbl">Strain</div><div class="bd-bar"><div class="bd-fill" style="width:${D.strain}%"></div></div><div class="bd-val">${D.strain}%</div></div>
+        <div class="bd-i"><div class="bd-lbl">Body Temp</div><div class="bd-bar"><div class="bd-fill" style="width:92%"></div></div><div class="bd-val">${D.bodyTemp}°C</div></div>
+        <div class="bd-i"><div class="bd-lbl">SpO2</div><div class="bd-bar"><div class="bd-fill" style="width:${D.spo2}%"></div></div><div class="bd-val">${D.spo2}%</div></div>
+      </div>
+    </div>
+    <div class="card" onclick="pop('todayPlan')" style="cursor:pointer"><div class="card-head"><h3>Today's Plan</h3><div class="card-sub">Tap for details</div></div><div class="rec-box"><div class="rec-emoji">${st.i}</div><div><div class="rec-title">${st.r}</div><div class="rec-desc">Your recovery is ${st.s.toLowerCase()}. ${st.d}</div></div></div></div>
+    <div class="card"><div class="card-head"><h3>7-Day Recovery Trend</h3></div>
+      <svg width="100%" height="120" viewBox="0 0 316 120" preserveAspectRatio="xMidYMid meet">
+        <defs><linearGradient id="rg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5DCAA5" stop-opacity=".3"/><stop offset="100%" stop-color="#5DCAA5" stop-opacity=".03"/></linearGradient></defs>
+        ${[0,1,2,3].map(i=>`<line x1="30" y1="${15+i*22}" x2="286" y2="${15+i*22}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`).join('')}
+        <polygon points="30,100 ${tP} 286,100" fill="url(#rg)"/>
+        <polyline points="${tP}" fill="none" stroke="#5DCAA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${tY.map((v,i)=>`<circle cx="${30+(i/6)*256}" cy="${v}" r="3" fill="#5DCAA5" stroke="var(--bg)" stroke-width="1.5"/>`).join('')}
+        ${dayL.map((d,i)=>`<text x="${30+(i/6)*256}" y="115" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="DM Sans">${d}</text>`).join('')}
+      </svg>
+    </div>`}
+
+function renderRhythm(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('rhythmBody').innerHTML=`
+    <div class="card"><div class="card-head"><h3>Energy Heatmap</h3></div>
+      <div class="hm-grid">${days.map((d,di)=>`<div class="hm-row"><div class="hm-day">${d}</div><div class="hm-cells">${D.energy[di].map(v=>`<div class="hm-cell" style="background:${hmCol(v)}"></div>`).join('')}</div></div>`).join('')}</div>
+      <div class="hm-legend"><div class="sleg-i"><div class="sleg-dot" style="background:#7F77DD;width:12px;height:12px;border-radius:2px"></div><span>High</span></div><div class="sleg-i"><div class="sleg-dot" style="background:#5DCAA5;width:12px;height:12px;border-radius:2px"></div><span>Good</span></div><div class="sleg-i"><div class="sleg-dot" style="background:#F5C4B3;width:12px;height:12px;border-radius:2px"></div><span>Mod</span></div><div class="sleg-i"><div class="sleg-dot" style="background:rgba(255,255,255,.08);width:12px;height:12px;border-radius:2px"></div><span>Low</span></div></div>
+    </div>
+    <div class="card card-hl" onclick="pop('chrono')" style="cursor:pointer"><div class="chrono-box"><div class="chrono-ico">&#x1F43A;</div><div><div class="chrono-lbl">Your Chronotype</div><div class="chrono-type">Wolf</div><div class="chrono-desc">Night person, peaks late evening. Tap for details.</div></div></div></div>
+    <div class="card"><div class="card-head"><h3>Pattern Insights</h3></div>
+      <div class="ins-list">
+        <div class="ins-i" onclick="pop('strongDay')"><div class="ins-ico">&#x2B50;</div><div><div class="ins-t">Strongest Day</div><div class="ins-v">Wednesday</div></div></div>
+        <div class="ins-i" onclick="pop('peakHrs')"><div class="ins-ico">&#x1F4C8;</div><div><div class="ins-t">Peak Hours</div><div class="ins-v">20:00 - 23:00</div></div></div>
+        <div class="ins-i" onclick="pop('dipPeriod')"><div class="ins-ico">&#x1F634;</div><div><div class="ins-t">Dip Period</div><div class="ins-v">14:00 - 15:30</div></div></div>
+      </div>
+    </div>`}
+
+function renderProf(){
+  document.getElementById('profPan').innerHTML=`
+    <div class="prof-row"><div class="prof-t">Profile</div><button class="prof-close" onclick="togProf()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="u-head"><div class="u-av">&#x1F464;</div><div><div class="u-name">Om Shukla</div></div></div>
+    <div class="card" style="margin-bottom:14px"><div class="card-head"><h3>Preferences</h3></div><div class="set-list">
+      <div class="set-i"><div><div class="set-n">Notifications</div><div class="set-d">Peak window alerts</div></div><div class="tog"><input type="checkbox" id="nT" checked><label for="nT"></label></div></div>
+      <div class="set-i"><div><div class="set-n">Haptic Feedback</div><div class="set-d">Vibration on interactions</div></div><div class="tog"><input type="checkbox" id="hT" checked><label for="hT"></label></div></div>
+    </div></div>
+    <div class="card" style="margin-bottom:14px"><div class="card-head"><h3>Connected Devices</h3></div><div style="display:flex;flex-direction:column;gap:10px">
+      <div class="dev-i"><div class="dev-ico">&#x231A;</div><div><div class="dev-n">Apple Watch Series 8</div><div class="dev-s">Connected &bull; 2d ago</div></div></div>
+      <div class="dev-i"><div class="dev-ico">&#x1F4F1;</div><div><div class="dev-n">iPhone 15</div><div class="dev-s">Connected &bull; Now</div></div></div>
+      <div class="dev-i"><div class="dev-ico">&#x1F6CF;&#xFE0F;</div><div><div class="dev-n">Sleep Tracker</div><div class="dev-s">Connected &bull; 1h ago</div></div></div>
+    </div></div>
+    <div class="card" style="margin-bottom:14px"><div class="card-head"><h3>Data Sources</h3></div><div style="display:flex;flex-direction:column;gap:8px">
+      <div class="src-i"><div class="src-n">HealthKit</div><div class="src-s">&#x2713; Connected</div></div>
+      <div class="src-i"><div class="src-n">Garmin</div><div class="src-s">&#x2713; Connected</div></div>
+      <div class="src-i"><div class="src-n">Oura Ring</div><div class="src-s">&#x2713; Connected</div></div>
+    </div></div>
+    <button class="btn" style="width:100%;background:rgba(255,255,255,.08);color:var(--t2);border:1px solid var(--border);margin-top:4px" onclick="pop('signout')">Sign Out</button>`}
+
+const R={dash:renderDash,sleep:renderSleep,focus:renderFocus,recovery:renderRecovery,rhythm:renderRhythm};
+function nav(t){cur=t;document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));document.getElementById('scr-'+t).classList.add('active');document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));R[t]()}
+function goHome(){nav('dash')}
+
+function togTheme(){
+  light=!light;document.getElementById('phone').classList.toggle('light',light);
+  document.getElementById('themeBtn').innerHTML=light?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  R[cur]()}
+
+function togProf(){const o=document.getElementById('profOv');if(o.classList.contains('open'))o.classList.remove('open');else{renderProf();o.classList.add('open')}}
+
+function pop(type){
+  const c=document.getElementById('popC');let h='';
+  const ic=(svg,bg)=>`<div class="pop-icon"${bg?' style="background:'+bg+'"':''}>${svg}</div>`;
+  const calSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  switch(type){
+    case'calendar':h=ic(calSvg)+`<div class="pop-t">Add to Calendar</div><div class="pop-d">Block your peak focus window <b>09:00 - 11:30</b> on your calendar. This protects your most productive hours for deep work, creative tasks, or critical decisions.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'insight':h=ic('<span style="font-size:26px">&#x1F4A1;</span>')+`<div class="pop-t">Peak Window Insight</div><div class="pop-d">Your circadian rhythm shows a cognitive peak between <b>14:00 - 16:00</b> today. During this window your focus, memory consolidation, and creative thinking are at their highest.<br><br><b>Avg Focus:</b> 91% &bull; <b>Avg HRV:</b> 62ms</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'chrono':h=ic('<span style="font-size:26px">&#x1F43A;</span>')+`<div class="pop-t">Wolf Chronotype</div><div class="pop-d"><b>Peak hours:</b> 20:00 - 23:00<br><b>Creative window:</b> Late evening<br><b>Best workout:</b> 18:00<br><b>Optimal sleep:</b> 00:00 - 08:00<br><br>Wolves are night-oriented. You do your best creative and analytical work in the evening. Morning meetings may feel sluggish — schedule deep work after 4pm.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'strongDay':h=ic('<span style="font-size:26px">&#x2B50;</span>')+`<div class="pop-t">Wednesday is Your Day</div><div class="pop-d">Over the past 4 weeks, your HRV, sleep quality, and focus scores consistently peak on Wednesdays.<br><br><b>Avg energy:</b> 92%<br><b>Avg focus:</b> 95%<br><br>Schedule your most important meetings and creative work mid-week.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'peakHrs':h=ic('<span style="font-size:26px">&#x1F4C8;</span>')+`<div class="pop-t">Peak Hours: 20:00 - 23:00</div><div class="pop-d">Your energy and cognitive metrics peak during these evening hours, aligning with your Wolf chronotype.<br><br><b>Avg Focus:</b> 91%<br><b>Avg HRV:</b> 62ms<br><b>Output:</b> 2.3x baseline<br><br>Protect this window for high-leverage work.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'dipPeriod':h=ic('<span style="font-size:26px">&#x1F634;</span>')+`<div class="pop-t">Afternoon Dip</div><div class="pop-d">Natural energy dip at <b>14:00 - 15:30</b>. Focus drops to ~45% of peak.<br><br><b>Try:</b> 20-min power nap, light walk, stretching, or routine admin tasks. Avoid critical decisions during this window.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'sleepTip':h=ic('<span style="font-size:26px">&#x1F4A4;</span>')+`<div class="pop-t">Sleep Optimization</div><div class="pop-d">Your deep sleep is <b>1.5h</b> (20%) — above average.<br><br><b>Maintain it:</b> Keep bedroom at 18-19°C, no screens 1h before bed, consistent bedtime (±30 min), no caffeine after 2pm, 10-min meditation before sleep.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'signout':h=`<div class="pop-icon" style="background:linear-gradient(135deg,#FF6B6B,#ee5a24)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div class="pop-t">Sign Out</div><div class="pop-d">Are you sure you want to sign out of Phase? Your data will remain synced.</div><button class="pop-btn" style="background:#FF6B6B" onclick="closePop()">Sign Out</button>`;break;
+    case'planMorning':h=ic('<span style="font-size:26px">&#x2600;&#xFE0F;</span>')+`<div class="pop-t">Morning Light Exposure</div><div class="pop-d">Getting 10 minutes of bright light within 30 minutes of waking resets your circadian clock and boosts cortisol at the right time.<br><br><b>Why it matters:</b> Morning light anchors your entire sleep-wake cycle. It improves alertness, mood, and sets up better melatonin release at night.<br><br><b>Tip:</b> Go outside — even overcast sky is 10x brighter than indoor lighting.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'planFocus1':h=ic('<span style="font-size:26px">&#x1F3AF;</span>')+`<div class="pop-t">Deep Work Block</div><div class="pop-d">Your first focus window of the day: <b>09:00 - 11:30</b>.<br><br><b>Predicted focus:</b> 91%<br><b>Best for:</b> Complex problem solving, writing, strategic thinking<br><b>Environment:</b> Noise-cancelling headphones, phone on DND, single-tasking<br><br>Block this on your calendar to protect it from meetings.</div><button class="pop-btn" onclick="closePop()">Add to Calendar</button>`;break;
+    case'planBreak':h=ic('<span style="font-size:26px">&#x1F6B6;</span>')+`<div class="pop-t">Movement Break</div><div class="pop-d">A 10-15 minute movement break after deep work restores attention and prevents cognitive fatigue.<br><br><b>Options:</b><br>• 10-min walk outside (best for reset)<br>• Desk stretching routine<br>• Quick yoga or bodyweight set<br>• Grab a healthy snack + hydrate<br><br><b>Avoid:</b> Social media scrolling — it depletes focus instead of restoring it.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'planNap':h=ic('<span style="font-size:26px">&#x1F4A4;</span>')+`<div class="pop-t">Power Nap Window</div><div class="pop-d">Your body has a natural energy dip at <b>14:00 - 15:30</b>. A 20-minute nap during this window can restore up to 35% of your cognitive performance.<br><br><b>Timing:</b> Set alarm for exactly 20 min<br><b>Position:</b> Reclined, not flat<br><b>Environment:</b> Dark, cool, quiet<br><br><b>Caution:</b> Napping longer than 30 min may cause grogginess.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'planFocus2':h=ic('<span style="font-size:26px">&#x1F31F;</span>')+`<div class="pop-t">Creative Peak</div><div class="pop-d">As a Wolf chronotype, your creative and analytical abilities peak in the evening: <b>20:00 - 21:30</b>.<br><br><b>Predicted focus:</b> 88%<br><b>Best for:</b> Creative projects, brainstorming, writing, code<br><b>Leverage:</b> Your divergent thinking is strongest now — ideal for novel ideas<br><br>This is your superpower window. Use it wisely.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'planWind':h=ic('<span style="font-size:26px">&#x1F303;</span>')+`<div class="pop-t">Wind Down Routine</div><div class="pop-d">Start winding down 60 minutes before your target sleep time of <b>00:00</b>.<br><br><b>Checklist:</b><br>• Dim all lights to warm/amber<br>• No screens (or use night shift + low brightness)<br>• 10-min guided breathing or meditation<br>• Light reading (physical book preferred)<br>• Room temp set to 18-19°C<br><br>Consistent wind-down improves sleep onset by 40%.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'hrvTip':h=ic('<span style="font-size:26px">&#x2764;&#xFE0F;</span>')+`<div class="pop-t">HRV Trending Up</div><div class="pop-d">Your Heart Rate Variability has increased <b>+8%</b> over the past 7 days, from 54ms to 58ms.<br><br><b>What this means:</b> Your autonomic nervous system is recovering well. Higher HRV indicates better stress resilience and cardiovascular fitness.<br><br><b>What's working:</b> Consistent sleep schedule, adequate recovery days, and hydration are likely contributing.<br><br><b>Keep it up:</b> Avoid overtraining and maintain your current routine.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'streakInfo':h=ic('<span style="font-size:26px">&#x1F525;</span>')+`<div class="pop-t">${D.streak}-Day Streak</div><div class="pop-d">You've worn your tracker and logged data for <b>${D.streak} consecutive days</b>.<br><br><b>Milestones:</b><br>&#x2705; 7 days — Habit forming<br>&#x2705; 14 days — Pattern recognition active<br>&#x2B1C; 30 days — Personalised predictions unlock<br>&#x2B1C; 90 days — Seasonal insights enabled<br><br>The longer your streak, the more accurate Phase becomes at predicting your optimal windows.</div><button class="pop-btn" onclick="closePop()">Keep Going</button>`;break;
+    case'sleepOnset':h=ic('<span style="font-size:26px">&#x23F1;&#xFE0F;</span>')+`<div class="pop-t">Sleep Onset: 12 min</div><div class="pop-d">It took you <b>12 minutes</b> to fall asleep last night — within the healthy range of 10-20 minutes.<br><br><b>What it tells us:</b> You're reaching the right level of sleepiness at bedtime. Falling asleep faster than 5 min may indicate sleep deprivation; longer than 30 min may suggest anxiety or too much screen time.<br><br><b>Your 7-day avg:</b> 14 min</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'sleepEfficiency':h=ic('<span style="font-size:26px">&#x1F4AF;</span>')+`<div class="pop-t">Sleep Efficiency: 97%</div><div class="pop-d">Sleep efficiency is the ratio of time asleep to time in bed. Your <b>97%</b> is excellent (target: >90%).<br><br><b>Time in bed:</b> 7h 42m<br><b>Time asleep:</b> 7h 29m<br><b>Awakenings:</b> 2 (brief)<br><br>High efficiency means your body associates bed with sleep. Keep your bedroom dark, cool, and reserved for rest.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'focusQuality':h=ic('<span style="font-size:26px">&#x1F9E0;</span>')+`<div class="pop-t">Focus Quality Analysis</div><div class="pop-d"><b>Predicted:</b> 85% &bull; <b>Actual:</b> 79%<br><br>Your actual focus was 6% below prediction today. Common factors:<br><br>• Sleep debt of ${D.sleepDebt.toFixed(1)}h may reduce baseline<br>• Afternoon dip at 14:00 pulled the average down<br>• Screen time before focus blocks can reduce entry speed<br><br><b>Tip:</b> Try a 5-min breathing exercise before your next focus block to close the gap.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'readiness':h=ic('<span style="font-size:26px">&#x1F44D;</span>')+`<div class="pop-t">Readiness: Moderate Work</div><div class="pop-d">Your recovery score of <b>${D.recovery}%</b> puts you in the <b>Good</b> zone today.<br><br><b>What this means:</b><br>• You can handle steady, focused work<br>• Mix 50-min work blocks with 10-min breaks<br>• Moderate exercise is fine (avoid max effort)<br>• Hydrate well — aim for 2.5L+ today<br><br><b>Avoid:</b> Back-to-back intense meetings, heavy lifting PRs, or skipping lunch.<br><br><b>Ideal activities:</b> Strategic thinking, collaborative work, moderate cardio, skill practice.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'todayPlan':h=ic('<span style="font-size:26px">&#x1F4CB;</span>')+`<div class="pop-t">Today's Recovery Plan</div><div class="pop-d">Based on your <b>${D.recovery}%</b> recovery, here's your optimised day:<br><br><b>06:30</b> — Wake + 10 min morning light<br><b>09:00</b> — Deep work (peak focus 91%)<br><b>11:30</b> — Movement break + hydrate<br><b>12:30</b> — Lunch (protein-rich, light carbs)<br><b>14:00</b> — Power nap or light admin<br><b>15:30</b> — Second work block (78% focus)<br><b>18:00</b> — Moderate workout (HR zone 2-3)<br><b>20:00</b> — Creative evening peak (Wolf window)<br><b>23:00</b> — Wind down routine<br><b>00:00</b> — Target sleep time<br><br>Stick to this plan to maximise tomorrow's recovery.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+    case'recoveryBreakdown':h=ic('<span style="font-size:26px">&#x1F4CA;</span>')+`<div class="pop-t">Recovery Breakdown</div><div class="pop-d">Your recovery score of <b>${D.recovery}%</b> is calculated from 6 biometrics:<br><br><b>HRV:</b> ${D.hrv}ms (moderate — aim for 60+)<br><b>Resting HR:</b> ${D.rhr} bpm (good — lower is better)<br><b>Sleep:</b> ${D.sleepScore}% (excellent)<br><b>Strain:</b> ${D.strain}% (low — room to push)<br><b>Temp:</b> ${D.bodyTemp}°C (normal range)<br><b>SpO2:</b> ${D.spo2}% (optimal)<br><br>Sleep quality is your strongest contributor. HRV has room for improvement.</div><button class="pop-btn" onclick="closePop()">Got it</button>`;break;
+  }
+  c.innerHTML=h;document.getElementById('popOv').classList.add('open');
+}
+function closePop(){document.getElementById('popOv').classList.remove('open')}
+
+setInterval(()=>{cdSec=cdSec<=1?300:cdSec-1},1000);
+setInterval(()=>{document.getElementById('greetLabel').textContent=greet()},60000);
+
+renderDash();
+setTimeout(()=>{document.getElementById('splash').classList.add('hide')},2500);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePop();document.getElementById('profOv').classList.remove('open')}});
+</script>
+</body>
+</html>
