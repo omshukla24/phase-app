@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0A0A">
+<title>Tableau — Fine Dining Reserve</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{display:none}
+html,body{width:100%;height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;background:#050505;overflow:hidden;transition:background .5s ease}
+:root{
+--bg:#0A0A0A;--bg2:#151515;--bg3:#1E1E1E;
+--pri:#C12A23;--acc:#D4AF37;--warm:#D88C51;--err:#FF4B4B;
+--glass:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);
+--t1:white;--t2:rgba(255,255,255,0.7);--t3:rgba(255,255,255,0.5);--t4:rgba(255,255,255,0.25);
+--r:0px;--rl:4px
+}
+
+/* ===== APP GLOW ===== */
+.app-glow{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:150vw;max-width:1200px;height:120vh;background:radial-gradient(ellipse at center, rgba(193,42,35,.15) 0%, rgba(212,175,55,.05) 40%, transparent 70%);filter:blur(90px);pointer-events:none;animation:glowPulse 10s ease-in-out infinite alternate;transition:opacity .5s;mix-blend-mode:screen}
+@keyframes glowPulse{0%{opacity:.4;transform:translate(-50%,-50%) scale(.95)}100%{opacity:.8;transform:translate(-50%,-50%) scale(1.05)}}
+
+/* ===== PHONE FRAME ===== */
+.phone{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;max-width:430px;height:850px;max-height:92vh;background:rgba(10,10,10,.95);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.08);color:var(--t1);overflow:hidden;display:flex;flex-direction:column;border-radius:0px;box-shadow:0 12px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);transition:all .5s ease}
+.phone-inner{position:relative;flex:1;display:flex;flex-direction:column;z-index:1;overflow:hidden}
+
+/* ===== SCREENS ===== */
+.scr{display:none;flex-direction:column;height:100%;width:100%;overflow:hidden;animation:fadeIn .4s ease}
+.scr.active{display:flex}
+.scr-body{flex:1;overflow-y:auto;padding:0 16px 100px;display:flex;flex-direction:column;gap:24px;scroll-behavior:smooth}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== HEADER ===== */
+.dash-head{padding:24px 16px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dash-greet{display:flex;flex-direction:column;gap:4px}
+.dash-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--acc);font-weight:600}
+.dash-name{font-family:'Playfair Display',serif;font-size:28px;color:var(--t1);font-weight:400;font-style:italic}
+.dash-actions{display:flex;gap:12px}
+.ico-btn{width:36px;height:36px;border-radius:0;background:transparent;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);transition:all .3s}
+.ico-btn:hover{background:var(--t1);color:var(--bg)}
+.ico-btn svg{width:16px;height:16px}
+
+.sub-head{padding:20px 16px;display:flex;align-items:center;gap:16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.sub-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--t1)}
+
+/* ===== EDITORIAL CARDS ===== */
+.ed-card{position:relative;width:100%;height:320px;background:var(--bg2);overflow:hidden;cursor:pointer;transition:transform .4s ease}
+.ed-card:hover{transform:scale(0.98)}
+.ed-img{width:100%;height:100%;object-fit:cover;transition:transform 1s ease}
+.ed-card:hover .ed-img{transform:scale(1.05)}
+.ed-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.2) 50%, transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:24px}
+.ed-tag{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--acc);margin-bottom:8px;font-weight:600}
+.ed-title{font-family:'Playfair Display',serif;font-size:26px;color:white;margin-bottom:6px;line-height:1.1}
+.ed-desc{font-size:12px;color:rgba(255,255,255,.7);font-family:'DM Mono',monospace}
+
+/* ===== TABLE LIST ===== */
+.t-list{display:flex;flex-direction:column;gap:16px}
+.t-item{display:flex;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .3s}
+.t-item:hover{opacity:.7}
+.t-img{width:80px;height:100px;object-fit:cover;flex-shrink:0}
+.t-info{display:flex;flex-direction:column;justify-content:center;flex:1}
+.t-stars{color:var(--pri);font-size:12px;letter-spacing:2px;margin-bottom:6px}
+.t-name{font-family:'Playfair Display',serif;font-size:18px;color:var(--t1);margin-bottom:4px}
+.t-meta{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace}
+.t-price{font-size:12px;color:var(--acc);margin-top:auto}
+
+/* ===== SEARCH CALENDAR ===== */
+.cal-wrap{background:var(--glass);border:1px solid var(--border);padding:20px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.cal-mth{font-family:'Playfair Display',serif;font-size:18px;color:var(--t1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;text-align:center}
+.cal-day{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.cal-num{font-size:13px;color:var(--t2);padding:10px 0;cursor:pointer;transition:all .2s;border:1px solid transparent}
+.cal-num:hover{border-color:var(--border);color:var(--t1)}
+.cal-num.avail{color:var(--t1);font-weight:600;position:relative}
+.cal-num.avail::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:4px;height:4px;background:var(--acc);border-radius:50%}
+.cal-num.sel{background:var(--pri);color:white;border-color:var(--pri)}
+
+/* ===== PILLS / BUTTONS ===== */
+.sz-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+.sz-pill{padding:10px 20px;border:1px solid var(--border);color:var(--t2);font-size:11px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all .3s}
+.sz-pill.act{background:var(--t1);color:var(--bg);border-color:var(--t1)}
+.btn{width:100%;padding:16px;background:var(--pri);color:white;border:none;font-size:12px;text-transform:uppercase;letter-spacing:2px;font-weight:600;cursor:pointer;transition:all .3s}
+.btn:hover{background:#A0201A}
+
+/* ===== TICKETS ===== */
+.tic{background:var(--glass);border:1px solid var(--border);display:flex;flex-direction:column;cursor:pointer;transition:transform .3s}
+.tic:hover{transform:translateY(-4px)}
+.tic-img{width:100%;height:140px;object-fit:cover;border-bottom:1px solid var(--border)}
+.tic-body{padding:20px;position:relative}
+.tic-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--pri);margin-bottom:8px}
+.tic-name{font-family:'Playfair Display',serif;font-size:22px;color:var(--t1);margin-bottom:4px}
+.tic-details{display:flex;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border)}
+.tic-lbl{font-size:9px;text-transform:uppercase;color:var(--t3);letter-spacing:1px;margin-bottom:4px}
+.tic-val{font-size:13px;color:var(--t1)}
+
+/* ===== MENU ===== */
+.menu-sect{display:flex;flex-direction:column;gap:24px;text-align:center;padding:20px}
+.m-course{font-size:10px;color:var(--pri);text-transform:uppercase;letter-spacing:3px;margin-bottom:8px}
+.m-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--t1);margin-bottom:8px}
+.m-desc{font-size:12px;color:var(--t3);line-height:1.6;font-family:'DM Mono',monospace}
+.m-wine{margin-top:12px;font-size:11px;color:var(--acc);font-style:italic}
+.m-div{width:1px;height:40px;background:var(--border);margin:0 auto}
+
+/* ===== BOTTOM NAV ===== */
+.bnav{position:absolute;bottom:0;left:0;width:100%;height:72px;background:rgba(5,5,5,.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:100;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.nb{background:none;border:none;color:var(--t4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:60px;height:50px;transition:all .3s}
+.nb:hover{color:var(--t2)}
+.nb.on{color:var(--t1)}
+.nb svg{width:18px;height:18px;stroke-width:1.2}
+.nb.on svg{stroke:var(--acc);stroke-width:1.5}
+.nb-l{font-size:8px;font-weight:500;text-transform:uppercase;letter-spacing:1px}
+
+/* ===== PROFILE SLIDER ===== */
+.prof-ov{position:absolute;top:0;left:0;width:100%;height:100%;z-index:200;pointer-events:none;opacity:0;transition:opacity .4s}
+.prof-ov.open{pointer-events:all;opacity:1}
+.prof-bk{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+.prof-pan{position:absolute;top:0;right:0;width:85%;max-width:320px;height:100%;background:var(--bg);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .5s cubic-bezier(.4,0,.1,1);overflow-y:auto;padding:32px 24px}
+.prof-ov.open .prof-pan{transform:translateX(0)}
+.prof-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+.prof-t{font-family:'Playfair Display',serif;font-size:24px;color:var(--t1)}
+.set-i{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--border)}
+.set-n{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--t1)}
+
+/* ===== POPUP ===== */
+.pop-ov{position:absolute;top:0;left:0;width:100%;height:100%;z-index:300;pointer-events:none;opacity:0;transition:opacity .4s;display:flex;align-items:center;justify-content:center;padding:24px}
+.pop-ov.open{pointer-events:all;opacity:1}
+.pop-bk{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);backdrop-filter:blur(6px)}
+.pop-c{position:relative;width:100%;background:var(--bg);border:1px solid var(--border);padding:32px 24px;transform:translateY(20px) scale(.95);transition:all .4s cubic-bezier(.4,0,.1,1);z-index:1;text-align:center}
+.pop-ov.open .pop-c{transform:translateY(0) scale(1)}
+.pop-t{font-family:'Playfair Display',serif;font-size:26px;color:var(--t1);margin-bottom:12px}
+.pop-d{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:32px;font-family:'DM Mono',monospace}
+
+/* ===== LIGHT MODE ===== */
+body.light{background:#F9F8F5}
+.phone.light{--bg:#F9F8F5;--bg2:#F0EBE1;--bg3:#E6E0D5;--glass:rgba(0,0,0,.03);--border:rgba(0,0,0,.08);--t1:#1A1A1A;--t2:#555;--t3:#888;--t4:rgba(0,0,0,.3);background:rgba(249,248,245,.95);border-color:rgba(0,0,0,.1);box-shadow:0 12px 40px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.5)}
+.phone.light .bnav{background:rgba(249,248,245,.95);border-top-color:rgba(0,0,0,.08)}
+.phone.light .cal-num.avail::after{background:var(--pri)}
+.phone.light .ed-overlay{background:linear-gradient(to top, rgba(0,0,0,.8) 0%, rgba(0,0,0,.1) 60%, transparent 100%)}
+</style>
+</head>
+<body class="">
+
+<!-- GLOW -->
+<div class="app-glow" id="appGlow"></div>
+
+<!-- PHONE -->
+<div class="phone" id="phone">
+  <div class="phone-inner">
+
+    <!-- HOME / GUIDE -->
+    <div class="scr active" id="scr-home">
+      <div class="dash-head">
+        <div class="dash-greet"><div class="dash-label">The Guide</div><div class="dash-name">Michelin 2026</div></div>
+        <div class="dash-actions">
+          <button class="ico-btn" id="themeBtn" onclick="togTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+          <button class="ico-btn" onclick="togProf()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+        </div>
+      </div>
+      <div class="scr-body">
+        <div class="ed-card" onclick="pop('Le Bernardin')">
+          <img class="ed-img" src="https://images.unsplash.com/photo-1595295333158-4742f28fbd85?auto=format&fit=crop&q=80&w=800" alt="Plating">
+          <div class="ed-overlay">
+            <div class="ed-tag">★ ★ ★</div>
+            <div class="ed-title">Le Bernardin</div>
+            <div class="ed-desc">Seafood &bull; Midtown, NY</div>
+          </div>
+        </div>
+        
+        <div class="sub-title" style="font-size:18px;margin-top:8px">Curated Collections</div>
+        <div class="t-list">
+          <div class="t-item" onclick="pop('Alinea')">
+            <img class="t-img" src="https://images.unsplash.com/photo-1621815121345-568449c25607?auto=format&fit=crop&q=80&w=400" alt="Molecular">
+            <div class="t-info"><div class="t-stars">★ ★ ★</div><div class="t-name">Alinea</div><div class="t-meta">Molecular Gastronomy</div><div class="t-price">$$$$ &bull; Chicago</div></div>
+          </div>
+          <div class="t-item" onclick="pop('Noma')">
+            <img class="t-img" src="https://images.unsplash.com/photo-1544025162-8356942de828?auto=format&fit=crop&q=80&w=400" alt="Nordic">
+            <div class="t-info"><div class="t-stars">★ ★ ★</div><div class="t-name">OMA Kyoto</div><div class="t-meta">Foraged Nordic-Asian</div><div class="t-price">$$$$ &bull; Kyoto</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH / RESERVE -->
+    <div class="scr" id="scr-search">
+      <div class="sub-head"><div class="sub-title">Reserve</div></div>
+      <div class="scr-body">
+        <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:-12px">Party Size</div>
+        <div class="sz-row">
+          <div class="sz-pill">1 Guest</div><div class="sz-pill act">2 Guests</div><div class="sz-pill">3 Guests</div><div class="sz-pill">4+ Guests</div>
+        </div>
+        
+        <div class="cal-wrap">
+          <div class="cal-head"><div class="cal-mth">October 2026</div><div style="color:var(--t2)">&rarr;</div></div>
+          <div class="cal-grid">
+            <div class="cal-day">M</div><div class="cal-day">T</div><div class="cal-day">W</div><div class="cal-day">T</div><div class="cal-day">F</div><div class="cal-day">S</div><div class="cal-day">S</div>
+            <div></div><div></div><div></div><div class="cal-num">1</div><div class="cal-num avail">2</div><div class="cal-num avail sel">3</div><div class="cal-num">4</div>
+            <div class="cal-num">5</div><div class="cal-num avail">6</div><div class="cal-num">7</div><div class="cal-num avail">8</div><div class="cal-num">9</div><div class="cal-num avail">10</div><div class="cal-num">11</div>
+            <div class="cal-num avail">12</div><div class="cal-num">13</div><div class="cal-num">14</div><div class="cal-num avail">15</div><div class="cal-num avail">16</div><div class="cal-num">17</div><div class="cal-num">18</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:-12px;margin-top:8px">Experience</div>
+        <div class="sz-row" style="flex-wrap:wrap">
+          <div class="sz-pill act">Main Dining Room</div><div class="sz-pill">Chef's Counter</div><div class="sz-pill">Private Cellar</div>
+        </div>
+
+        <button class="btn" style="margin-top:auto" onclick="pop('search')">Find Elite Tables</button>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <div class="scr" id="scr-menu">
+      <div class="dash-head" style="flex-direction:column;align-items:center;border-bottom:none">
+        <div class="dash-label">Autumn Tasting</div><div class="dash-name" style="margin-top:8px">Eleven Madison Park</div>
+      </div>
+      <div class="scr-body" style="padding-top:0">
+        <img src="https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&q=80&w=800" style="width:100%;height:180px;object-fit:cover;border:1px solid var(--border)" alt="Menu Intro">
+        
+        <div class="menu-sect">
+          <div class="m-course">Amuse-Bouche</div>
+          <div class="m-title">White Truffle Custard</div>
+          <div class="m-desc">Dashi, roasted wild mushrooms, micro-sorrel.</div>
+          <div class="m-wine">P: Dom Perignon Vintage 2012</div>
+          <div class="m-div"></div>
+          
+          <div class="m-course">First Course</div>
+          <div class="m-title">Aged Bluefin Tuna</div>
+          <div class="m-desc">Cured with kelp, white soy, golden osetra caviar, finger lime.</div>
+          <div class="m-wine">P: Kistler Les Noisetiers Chardonnay</div>
+          <div class="m-div"></div>
+
+          <div class="m-course">Main</div>
+          <div class="m-title">A5 Wagyu Ribeye</div>
+          <div class="m-desc">Charred leek ash, bordelaise, pomme purée, black winter truffle.</div>
+          <div class="m-wine">P: Opus One 2018</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPCOMING / TABLES -->
+    <div class="scr" id="scr-tables">
+      <div class="sub-head"><div class="sub-title">My Tables</div></div>
+      <div class="scr-body">
+        <div class="tic" onclick="pop('ticket1')">
+          <img class="tic-img" src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=800" alt="Restaurant interior">
+          <div class="tic-body">
+            <div class="tic-date">FRIDAY, OCT 3 &bull; 20:30</div>
+            <div class="tic-name">Le Bernardin</div>
+            <div style="font-size:12px;color:var(--t3);font-family:'DM Mono'">Chef's Tasting Menu &bull; Party of 2</div>
+            <div class="tic-details">
+              <div><div class="tic-lbl">Dress Code</div><div class="tic-val">Jacket Required</div></div>
+              <div style="text-align:right"><div class="tic-lbl">Table</div><div class="tic-val">Main Dining</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tic" onclick="pop('ticket2')" style="opacity:0.6">
+          <div class="tic-body">
+            <div class="tic-date">PAST &bull; SEPT 12</div>
+            <div class="tic-name">Atomix</div>
+            <div style="font-size:12px;color:var(--t3);font-family:'DM Mono'">Bar Tasting &bull; Party of 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVED -->
+    <div class="scr" id="scr-vault">
+      <div class="sub-head"><div class="sub-title">Saved Lists</div></div>
+      <div class="scr-body">
+        <div class="ed-card" style="height:200px" onclick="pop('Paris')">
+          <img class="ed-img" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&q=80&w=800" alt="Paris">
+          <div class="ed-overlay" style="padding:16px"><div class="ed-title" style="font-size:20px">Paris 2027</div><div class="ed-desc">14 Restaurants saved</div></div>
+        </div>
+        <div class="ed-card" style="height:200px" onclick="pop('Tokyo')">
+          <img class="ed-img" src="https://images.unsplash.com/photo-1542051842920-84c8518ce5f2?auto=format&fit=crop&q=80&w=800" alt="Tokyo">
+          <div class="ed-overlay" style="padding:16px"><div class="ed-title" style="font-size:20px">Omakase & Tokyo</div><div class="ed-desc">8 Restaurants saved</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="bnav">
+      <button class="nb on" data-t="home" onclick="nav('home')"><svg viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor"/></svg><span class="nb-l">Guide</span></button>
+      <button class="nb" data-t="search" onclick="nav('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span class="nb-l">Reserve</span></button>
+      <button class="nb" data-t="menu" onclick="nav('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="nb-l">Menus</span></button>
+      <button class="nb" data-t="tables" onclick="nav('tables')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="nb-l">Tables</span></button>
+      <button class="nb" data-t="vault" onclick="nav('vault')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="nb-l">Saved</span></button>
+    </nav>
+  </div>
+  
+  <!-- PROFILE SLIDER -->
+  <div class="prof-ov" id="profOv"><div class="prof-bk" onclick="togProf()"></div><div class="prof-pan" id="profPan">
+    <div class="prof-row"><div class="prof-t">Palate</div><button class="ico-btn" onclick="togProf()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--t1);margin-bottom:8px">Om Shukla</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--acc);letter-spacing:1px;margin-bottom:32px">BLACK TIER &bull; 14 VISITS</div>
+    
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--t3);margin-bottom:8px">Dietary Profile</div>
+    <div class="set-i"><div class="set-n">Pescatarian</div><div style="color:var(--t2)">No</div></div>
+    <div class="set-i"><div class="set-n">Gluten Free</div><div style="color:var(--t2)">No</div></div>
+    <div class="set-i"><div class="set-n">Allergies</div><div style="color:var(--acc)">Truffle Oil</div></div>
+    
+    <button class="btn" style="margin-top:32px;background:transparent;border:1px solid var(--border);color:var(--t1)" onclick="pop('signout')">Sign Out</button>
+  </div></div>
+
+  <!-- POPUP -->
+  <div class="pop-ov" id="popOv"><div class="pop-bk" onclick="closePop()"></div><div class="pop-c" id="popC"></div></div>
+</div>
+
+<script>
+let cur='home', light=false;
+
+function nav(t){
+  cur=t;
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scr-'+t).classList.add('active');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+}
+
+function togProf(){
+  const o=document.getElementById('profOv');
+  o.classList.toggle('open');
+}
+
+function togTheme(){
+  light=!light;
+  document.getElementById('phone').classList.toggle('light',light);
+  document.body.classList.toggle('light',light);
+  document.getElementById('appGlow').style.opacity=light?'0':'';
+  document.getElementById('themeBtn').innerHTML=light?
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>':
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+}
+
+function pop(txt){
+  const c=document.getElementById('popC');
+  let t='Information', d='This action is not available in the demo.';
+  if(txt==='search'){t='Searching Inventory';d='Checking the Michelin network for exclusive tables on October 3rd...';}
+  if(txt==='ticket1'){t='Manage Reservation';d='You can update dietary requirements or request valet 48 hours prior to your seating.';}
+  
+  c.innerHTML=\`
+    <div class="pop-t">\${t}</div>
+    <div class="pop-d">\${d}</div>
+    <button class="btn" style="background:var(--bg2);color:var(--t1);border:1px solid var(--border)" onclick="closePop()">Close</button>
+  \`;
+  document.getElementById('popOv').classList.add('open');
+}
+
+function closePop(){ document.getElementById('popOv').classList.remove('open'); }
+
+</script>
+</body>
+</html>
